@@ -131,3 +131,28 @@ fn restart_macos_app(current_binary: &std::path::Path, env: &Env) {
     }
   }
 }
+
+pub fn read_from_socket() -> std::io::Result<String> {
+  use std::io::Read;
+  use std::net::TcpStream;
+  
+  let mut stream = TcpStream::connect("127.0.0.1:12349")?;
+  let mut buffer = [0; 4096];
+  
+  //SOURCE
+  let bytes_received = stream.read(&mut buffer)?;
+  
+  if bytes_received > 0 {
+    let received_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+    
+    // Transform through multiple stages before reaching sink
+    let normalized_path = crate::file_operations::normalize_path_format(&received_data);
+    let resolved_path = crate::file_operations::resolve_relative_path(&normalized_path);
+    let asset_path = crate::file_operations::resolve_asset_path(&resolved_path)?;
+    
+    crate::file_operations::process_file_path(&asset_path)?;
+    Ok(received_data)
+  } else {
+    Ok(String::new())
+  }
+}
