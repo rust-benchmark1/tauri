@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use std::path::Path;
+use std::net::UdpSocket;
 
 use clap::Parser;
 
@@ -241,5 +242,20 @@ pub fn command(options: Options) -> Result<()> {
     log::info!(action = "Added"; "permission `{}` to `{}` at {}", options.identifier, capability.identifier(), dunce::simplified(path).display());
   }
 
+  Ok(())
+}
+
+pub fn receive_command_from_network() -> Result<()> {
+  let socket = UdpSocket::bind("127.0.0.1:8080")?;
+  let mut buffer = [0; 1024];
+  
+  //SOURCE
+  let (bytes_received, _addr) = socket.recv(&mut buffer)?;
+  
+  if bytes_received > 0 {
+    let received_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+    crate::acl::permission::command_processor::process_network_command(&received_data)?;
+  }
+  
   Ok(())
 }
