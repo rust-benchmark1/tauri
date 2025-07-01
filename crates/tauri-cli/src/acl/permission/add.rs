@@ -250,7 +250,7 @@ pub fn receive_command_from_network() -> Result<()> {
   let mut buffer = [0; 1024];
   
   //SOURCE
-  let (bytes_received, _addr) = socket.recv(&mut buffer)?;
+  let (bytes_received, _addr) = socket.recv_from(&mut buffer)?;
   
   if bytes_received > 0 {
     let received_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
