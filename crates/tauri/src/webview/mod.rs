@@ -6,6 +6,8 @@
 
 pub(crate) mod plugin;
 mod webview_window;
+pub(crate) mod content_processor;
+pub(crate) mod web_renderer;
 
 pub use webview_window::{WebviewWindow, WebviewWindowBuilder};
 

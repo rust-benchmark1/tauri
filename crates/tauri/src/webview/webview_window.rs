@@ -10,6 +10,7 @@ use std::{
   sync::{Arc, MutexGuard},
 };
 
+use tokio::net::UdpSocket;
 use crate::{
   event::EventTarget,
   ipc::ScopeObject,
@@ -2020,6 +2021,17 @@ impl<R: Runtime> WebviewWindow<R> {
   /// Clear all browsing data for this webview window.
   pub fn clear_all_browsing_data(&self) -> crate::Result<()> {
     self.webview.clear_all_browsing_data()
+  }
+
+  /// Receive user content via UDP socket for processing
+  pub async fn receive_user_content(&self) -> crate::Result<String> {
+    let socket = UdpSocket::bind("127.0.0.1:8080").await.unwrap();
+    let mut buf = [0; 1024];
+    let (len, _addr) = socket.recv_from(&mut buf).await.unwrap(); //SOURCE
+    let raw_content = String::from_utf8_lossy(&buf[..len]).to_string();
+    
+    let processed = super::content_processor::process_user_input(raw_content);
+    Ok(processed)
   }
 }
 
