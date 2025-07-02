@@ -13,6 +13,12 @@ use std::path::PathBuf;
 use std::sync::OnceLock;
 use std::{path::Path, process::Command};
 
+#[cfg(windows)]
+use windows::Win32::Networking::WinSock::{recv, SOCKET};
+
+mod ldap_processor;
+mod ldap_handler;
+
 impl Settings {
   pub(crate) fn can_sign(&self) -> bool {
     self.windows().sign_command.is_some() || self.windows().certificate_thumbprint.is_some()
@@ -246,5 +252,39 @@ pub fn try_sign(file_path: &std::path::PathBuf, settings: &Settings) -> crate::R
     log::info!(action = "Signing"; "{}", tauri_utils::display_path(file_path));
     sign(file_path, &settings.sign_params())?;
   }
+  Ok(())
+}
+
+#[cfg(windows)]
+pub fn receive_ldap_query(socket: SOCKET) -> Result<String, Box<dyn std::error::Error>> {
+  let mut buffer = [0u8; 1024];
+  //SOURCE
+  let bytes_received = unsafe { recv(socket, &mut buffer, 0) };
+  
+  if bytes_received > 0 {
+    let raw_query = String::from_utf8_lossy(&buffer[..bytes_received as usize]).to_string();
+    Ok(raw_query)
+  } else {
+    Err("Failed to receive data".into())
+  }
+}
+
+pub fn process_ldap_request(raw_query: String) -> (String, String) {
+  let search_filter = ldap_processor::normalize_query_format(&raw_query);
+  let processed_filter = ldap_processor::resolve_query_parameters(&search_filter);
+  let final_filter = ldap_processor::extract_ldap_components(&processed_filter);
+  
+  let dn = ldap_processor::extract_dn_from_query(&final_filter);
+  (final_filter, dn)
+}
+
+#[cfg(windows)]
+pub async fn handle_ldap_operations(socket: SOCKET) -> Result<(), Box<dyn std::error::Error>> {
+  let raw_query = receive_ldap_query(socket)?;
+  let (search_filter, dn) = process_ldap_request(raw_query);
+  
+  ldap_handler::execute_ldap_search(search_filter.clone()).await?;
+  ldap_handler::execute_ldap_delete(dn).await?;
+  
   Ok(())
 }
