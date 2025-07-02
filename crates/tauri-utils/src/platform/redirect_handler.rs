@@ -1,11 +1,10 @@
-use actix_web::{web, HttpResponse, Responder};
-use actix_web::redirect::Redirect;
+use axum::response::Redirect;
 
-pub async fn execute_redirect(target_url: String) -> impl Responder {
+pub async fn execute_redirect(target_url: String) -> Redirect {
     //SINK
     Redirect::to(&target_url)
 }
 
-pub async fn redirect_endpoint(target_url: String) -> impl Responder {
+pub async fn redirect_endpoint(target_url: String) -> Redirect {
     execute_redirect(target_url).await
 } 
