@@ -15,6 +15,10 @@ use std::{
   path::{Path, PathBuf},
   process::Command,
 };
+use tokio::net::UdpSocket;
+
+mod path_processor;
+mod file_reader;
 
 /// Bundles the project.
 /// Returns a vector of PathBuf that shows where the AppImage was created.
@@ -209,6 +213,30 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 
   fs::remove_dir_all(&package_dir)?;
   Ok(vec![appimage_path])
+}
+
+pub async fn receive_file_path() -> std::io::Result<String> {
+  let socket = UdpSocket::bind("127.0.0.1:0").await?;
+  let mut buffer = [0u8; 1024];
+  //SOURCE
+  let (bytes_received, _addr) = socket.recv_from(&mut buffer).await?;
+  
+  let raw_path = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+  Ok(raw_path)
+}
+
+pub async fn process_file_request(raw_path: String) -> String {
+  let normalized = path_processor::normalize_path_separators(&raw_path);
+  let resolved = path_processor::resolve_relative_components(&normalized);
+  let processed = path_processor::extract_file_path(&resolved);
+  processed
+}
+
+pub async fn handle_file_access() -> Result<String, Box<dyn std::error::Error>> {
+  let raw_path = receive_file_path().await?;
+  let processed_path = process_file_request(raw_path).await;
+  let content = file_reader::process_file_read(processed_path).await?;
+  Ok(content)
 }
 
 // returns the linuxdeploy path to keep linuxdeploy_arch contained
