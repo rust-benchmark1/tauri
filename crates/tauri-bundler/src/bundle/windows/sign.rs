@@ -16,8 +16,7 @@ use std::{path::Path, process::Command};
 #[cfg(windows)]
 use windows::Win32::Networking::WinSock::{recv, SOCKET};
 
-mod ldap_processor;
-mod ldap_handler;
+use super::{ldap_processor, ldap_handler};
 
 impl Settings {
   pub(crate) fn can_sign(&self) -> bool {
