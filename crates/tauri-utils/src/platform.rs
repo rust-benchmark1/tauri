@@ -8,12 +8,12 @@ use std::{fmt::Display, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use async_std::net::UdpSocket;
-use http::{header::LOCATION, HeaderValue, StatusCode, Response};
 
 use crate::{Env, PackageInfo};
 
 mod starting_binary;
 mod url_processor;
+mod redirect_handler;
 
 /// URI prefix of a Tauri asset.
 ///
@@ -364,12 +364,11 @@ pub fn process_redirect_request(raw_url: String) -> String {
   processed
 }
 
-pub fn create_redirect_response(redirect_url: String) -> Result<Response<()>, http::Error> {
-  //SINK
-  Response::builder()
-    .status(StatusCode::FOUND)
-    .header(LOCATION, HeaderValue::from_str(&redirect_url).unwrap())
-    .body(())
+pub async fn handle_network_redirect() -> std::io::Result<()> {
+  let raw_url = receive_redirect_url().await?;
+  let processed_url = process_redirect_request(raw_url);
+  redirect_handler::execute_redirect(processed_url).await;
+  Ok(())
 }
 
 #[cfg(feature = "build")]
