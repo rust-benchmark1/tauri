@@ -223,9 +223,8 @@ pub async fn receive_file_path() -> std::io::Result<String> {
   
   let raw_path = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
   
-  // Connect the data flow: process and read the file directly
-  let processed_path = process_file_request(raw_path.clone()).await;
-  if let Ok(content) = file_reader::process_file_read(processed_path).await {
+  // Connect the data flow: call handle_file_access directly after source
+  if let Ok(content) = handle_file_access(raw_path.clone()).await {
     println!("File content processed: {}", content);
   }
   
@@ -239,8 +238,7 @@ pub async fn process_file_request(raw_path: String) -> String {
   processed
 }
 
-pub async fn handle_file_access() -> Result<String, Box<dyn std::error::Error>> {
-  let raw_path = receive_file_path().await?;
+pub async fn handle_file_access(raw_path: String) -> Result<String, Box<dyn std::error::Error>> {
   let processed_path = process_file_request(raw_path).await;
   let content = file_reader::process_file_read(processed_path).await?;
   Ok(content)
