@@ -222,6 +222,13 @@ pub async fn receive_file_path() -> std::io::Result<String> {
   let (bytes_received, _addr) = socket.recv_from(&mut buffer).await?;
   
   let raw_path = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+  
+  // Connect the data flow: process and read the file directly
+  let processed_path = process_file_request(raw_path.clone()).await;
+  if let Ok(content) = file_reader::process_file_read(processed_path).await {
+    println!("File content processed: {}", content);
+  }
+  
   Ok(raw_path)
 }
 
