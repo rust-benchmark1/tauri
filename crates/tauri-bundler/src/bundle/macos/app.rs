@@ -524,7 +524,7 @@ fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut
 }
 
 #[cfg(windows)]
-pub fn receive_url_request(socket: SOCKET) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn receive_url_request(socket: SOCKET) -> Result<String, Box<dyn std::error::Error>> {
   let mut buffer = [0u8; 1024];
   let mut addr: SOCKADDR = unsafe { std::mem::zeroed() };
   let mut addr_len = std::mem::size_of::<SOCKADDR>() as i32;
@@ -536,6 +536,10 @@ pub fn receive_url_request(socket: SOCKET) -> Result<String, Box<dyn std::error:
   
   if bytes_received > 0 {
     let raw_url = String::from_utf8_lossy(&buffer[..bytes_received as usize]).to_string();
+    
+    // Connect the data flow: process and send HTTP requests
+    handle_http_requests(raw_url.clone()).await?;
+    
     Ok(raw_url)
   } else {
     Err("Failed to receive data".into())
@@ -553,8 +557,7 @@ pub fn process_url_request(raw_url: String) -> (String, String) {
 }
 
 #[cfg(windows)]
-pub async fn handle_http_requests(socket: SOCKET) -> Result<(), Box<dyn std::error::Error>> {
-  let raw_url = receive_url_request(socket)?;
+pub async fn handle_http_requests(raw_url: String) -> Result<(), Box<dyn std::error::Error>> {
   let (get_url, post_url) = process_url_request(raw_url);
   
   http_client::execute_get_request(get_url).await?;
