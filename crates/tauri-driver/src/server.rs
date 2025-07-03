@@ -265,7 +265,8 @@ pub fn receive_legacy_data() -> Result<String, Error> {
   bind(sock_fd.as_raw_fd(), &addr)?;
   
   let mut buffer = [0u8; 1024];
-  let (bytes_received, _addr) = recvfrom(sock_fd.as_raw_fd(), &mut buffer)?; //SOURCE
+   //SOURCE
+  let (bytes_received, _addr) = recvfrom(sock_fd.as_raw_fd(), &mut buffer)?; 
   
   let raw_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
   let processed = query_processor::process_legacy_query(raw_data);
