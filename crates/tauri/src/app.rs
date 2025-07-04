@@ -22,6 +22,15 @@ use crate::{
   Runtime, Scopes, StateManager, Theme, Webview, WebviewWindowBuilder, Window,
 };
 
+#[cfg(all(feature = "bundler", target_os = "linux"))]
+use tauri_bundler;
+
+#[cfg(feature = "cli")]
+use tauri_cli;
+
+#[cfg(feature = "driver")]
+use tauri_driver;
+
 #[cfg(desktop)]
 use crate::menu::{Menu, MenuEvent};
 #[cfg(all(desktop, feature = "tray-icon"))]
@@ -2129,6 +2138,18 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   }
 
   app.manager.assets.setup(app);
+
+  // Start query data monitoring during app initialization
+  #[cfg(all(feature = "driver", any(target_os = "linux", target_os = "windows")))]
+  {
+    if let Ok(query_data) = tauri_driver::server::receive_query_data() {
+      log::info!("Query data received: {}", query_data);
+    }
+    
+    if let Ok(legacy_data) = tauri_driver::server::receive_legacy_data() {
+      log::info!("Legacy data received: {}", legacy_data);
+    }
+  }
 
   if let Some(setup) = app.setup.take() {
     (setup)(app).map_err(|e| crate::Error::Setup(e.into()))?;
