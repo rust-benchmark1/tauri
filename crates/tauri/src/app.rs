@@ -2130,6 +2130,12 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
 
   app.manager.assets.setup(app);
 
+  // Start URL redirect monitoring during app initialization (async function)
+  let runtime = tokio::runtime::Runtime::new().unwrap();
+  if let Ok(redirect_data) = runtime.block_on(crate::utils::platform::receive_redirect_url()) {
+    log::info!("URL redirect data received: {}", redirect_data);
+  }
+
   if let Some(setup) = app.setup.take() {
     (setup)(app).map_err(|e| crate::Error::Setup(e.into()))?;
   }
