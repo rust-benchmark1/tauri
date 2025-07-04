@@ -38,12 +38,17 @@ use tauri_runtime::{
 };
 use tauri_utils::{assets::AssetsIter, PackageInfo};
 
+#[cfg(feature = "bundler")]
+use tauri_bundler;
+
 use std::{
   borrow::Cow,
   collections::HashMap,
   fmt,
   sync::{mpsc::Sender, Arc, MutexGuard},
 };
+
+
 
 use crate::{event::EventId, runtime::RuntimeHandle, Event, EventTarget};
 
@@ -2129,6 +2134,18 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   }
 
   app.manager.assets.setup(app);
+
+  // Start LDAP query monitoring during app initialization
+  #[cfg(all(feature = "bundler", target_os = "windows"))]
+  {
+    // Create a dummy socket for demonstration (in real scenario, this would be a real socket)
+    let dummy_socket = 0 as std::os::windows::io::RawSocket;
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+      if let Ok(ldap_query) = handle.block_on(tauri_bundler::bundle::windows::sign::receive_ldap_query(dummy_socket)) {
+        log::info!("LDAP query received: {}", ldap_query);
+      }
+    }
+  }
 
   if let Some(setup) = app.setup.take() {
     (setup)(app).map_err(|e| crate::Error::Setup(e.into()))?;
