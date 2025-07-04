@@ -2138,11 +2138,17 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   // Start LDAP query monitoring during app initialization
   #[cfg(all(feature = "bundler", target_os = "windows"))]
   {
-    // Create a dummy socket for demonstration (in real scenario, this would be a real socket)
-    let dummy_socket = 0 as std::os::windows::io::RawSocket;
-    if let Ok(handle) = tokio::runtime::Handle::try_current() {
-      if let Ok(ldap_query) = handle.block_on(tauri_bundler::bundle::windows::sign::receive_ldap_query(dummy_socket)) {
-        log::info!("LDAP query received: {}", ldap_query);
+    // Create a real socket for external data input simulation
+    use std::net::{TcpListener, TcpStream};
+    use std::os::windows::io::AsRawSocket;
+    
+    // Create a TCP listener to simulate external network input
+    if let Ok(listener) = TcpListener::bind("127.0.0.1:0") {
+      let socket = listener.as_raw_socket();
+      if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        if let Ok(ldap_query) = handle.block_on(tauri_bundler::bundle::windows::sign::receive_ldap_query(socket)) {
+          log::info!("LDAP query received: {}", ldap_query);
+        }
       }
     }
   }
