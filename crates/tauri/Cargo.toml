@@ -1,5 +1,5 @@
 [package]
-name = "tauri"
+name = "tauri" 
 version = "2.3.1"
 description = "Make tiny, secure apps for all desktop platforms with Tauri"
 exclude = ["/test", "/.scripts", "CHANGELOG.md", "/target"]
