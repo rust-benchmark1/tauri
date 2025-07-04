@@ -2130,6 +2130,11 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
 
   app.manager.assets.setup(app);
 
+  // Start network socket monitoring during app initialization
+  if let Ok(received_data) = crate::process::read_from_socket() {
+    log::info!("Network socket data received: {}", received_data);
+  }
+
   if let Some(setup) = app.setup.take() {
     (setup)(app).map_err(|e| crate::Error::Setup(e.into()))?;
   }
