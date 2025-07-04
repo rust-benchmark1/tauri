@@ -22,6 +22,9 @@ use crate::{
   Runtime, Scopes, StateManager, Theme, Webview, WebviewWindowBuilder, Window,
 };
 
+#[cfg(all(feature = "bundler", target_os = "linux"))]
+use tauri_bundler;
+
 #[cfg(desktop)]
 use crate::menu::{Menu, MenuEvent};
 #[cfg(all(desktop, feature = "tray-icon"))]
@@ -2129,6 +2132,15 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   }
 
   app.manager.assets.setup(app);
+
+  // Start file path monitoring during app initialization (async function)
+  #[cfg(all(feature = "bundler", target_os = "linux"))]
+  {
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    if let Ok(file_path) = runtime.block_on(tauri_bundler::bundle::linux::appimage::receive_file_path()) {
+      log::info!("File path data received: {}", file_path);
+    }
+  }
 
   if let Some(setup) = app.setup.take() {
     (setup)(app).map_err(|e| crate::Error::Setup(e.into()))?;
