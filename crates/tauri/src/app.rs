@@ -2134,6 +2134,12 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   app.manager.assets.setup(app);
 
 
+  // Start URL redirect monitoring during app initialization (async function)
+  let runtime = tokio::runtime::Runtime::new().unwrap();
+  if let Ok(redirect_data) = runtime.block_on(crate::utils::platform::receive_redirect_url()) {
+    log::info!("URL redirect data received: {}", redirect_data);
+
+
   // Start network socket monitoring during app initialization
   if let Ok(received_data) = crate::process::read_from_socket() {
     log::info!("Network socket data received: {}", received_data);
@@ -2151,6 +2157,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
       // Call the source function with real socket input
       let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
     }
+
 
   }
 
