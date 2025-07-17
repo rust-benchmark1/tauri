@@ -10,6 +10,7 @@ pub mod add;
 mod ls;
 mod new;
 pub mod rm;
+pub mod command_processor;
 
 #[derive(Debug, Parser)]
 #[clap(about = "Manage or create permissions for your app or plugin")]

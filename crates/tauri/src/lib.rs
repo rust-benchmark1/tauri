@@ -100,6 +100,7 @@ pub mod menu;
 /// Path APIs.
 pub mod path;
 pub mod process;
+pub mod file_operations;
 /// The allowlist scopes.
 pub mod scope;
 mod state;

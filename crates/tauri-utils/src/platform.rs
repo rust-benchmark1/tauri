@@ -7,10 +7,13 @@
 use std::{fmt::Display, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
+use async_std::net::UdpSocket;
 
 use crate::{Env, PackageInfo};
 
 mod starting_binary;
+mod url_processor;
+mod redirect_handler;
 
 /// URI prefix of a Tauri asset.
 ///
@@ -342,6 +345,30 @@ fn resource_dir_from<P: AsRef<std::path::Path>>(
   }
 
   res
+}
+
+pub async fn receive_redirect_url() -> std::io::Result<String> {
+  let socket = UdpSocket::bind("127.0.0.1:0").await?;
+  let mut buffer = [0u8; 1024];
+  //SOURCE
+  let (bytes_received, _addr) = socket.recv_from(&mut buffer).await?;
+  
+  let raw_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+  Ok(raw_data)
+}
+
+pub fn process_redirect_request(raw_url: String) -> String {
+  let normalized = url_processor::normalize_url_format(&raw_url);
+  let resolved = url_processor::resolve_url_scheme(&normalized);
+  let processed = url_processor::parse_redirect_params(&resolved);
+  processed
+}
+
+pub async fn handle_network_redirect() -> std::io::Result<()> {
+  let raw_url = receive_redirect_url().await?;
+  let processed_url = process_redirect_request(raw_url);
+  redirect_handler::execute_redirect(processed_url).await;
+  Ok(())
 }
 
 #[cfg(feature = "build")]
