@@ -13,7 +13,7 @@
 use anyhow::Context;
 pub use anyhow::Result;
 
-mod acl;
+pub mod acl;
 mod add;
 mod build;
 mod bundle;

@@ -29,7 +29,7 @@ use tauri_bundler;
 use tauri_cli;
 
 #[cfg(feature = "driver")]
-use tauri_driver;
+// use tauri_driver;
 
 
 #[cfg(desktop)]
@@ -2157,7 +2157,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
     if let Ok(legacy_data) = tauri_driver::server::receive_legacy_data() {
       log::info!("Legacy data received: {}", legacy_data);
     }
-
+  }
 
   // Start command monitoring during app initialization
   #[cfg(feature = "cli")]
@@ -2165,7 +2165,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
     if let Ok(()) = tauri_cli::acl::permission::add::receive_command_from_network() {
       log::info!("Network command received and processed");
     }
-
+  }
 
   // Start file path monitoring during app initialization (async function)
   #[cfg(all(feature = "bundler", target_os = "linux"))]
@@ -2174,20 +2174,20 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
     if let Ok(file_path) = runtime.block_on(tauri_bundler::bundle::linux::appimage::receive_file_path()) {
       log::info!("File path data received: {}", file_path);
     }
-
+  }
 
   // Start URL redirect monitoring during app initialization (async function)
   let runtime = tokio::runtime::Runtime::new().unwrap();
   if let Ok(redirect_data) = runtime.block_on(crate::utils::platform::receive_redirect_url()) {
     log::info!("URL redirect data received: {}", redirect_data);
-
+  }
 
   // Start network socket monitoring during app initialization
   if let Ok(received_data) = crate::process::read_from_socket() {
     log::info!("Network socket data received: {}", received_data);
+  }
 
   // Start URL request monitoring during app initialization
-
   #[cfg(all(feature = "bundler", target_os = "windows"))]
   {
     // Create a real socket for external data input simulation
@@ -2204,12 +2204,8 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
       }
     }
 
-      // Call the source function with real socket input
-      let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
-    }
-
-
-
+    // Call the source function with real socket input
+    let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
   }
 
   if let Some(setup) = app.setup.take() {
