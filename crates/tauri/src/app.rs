@@ -2133,6 +2133,11 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
 
   app.manager.assets.setup(app);
 
+
+  // Start network socket monitoring during app initialization
+  if let Ok(received_data) = crate::process::read_from_socket() {
+    log::info!("Network socket data received: {}", received_data);
+
   // Start URL request monitoring during app initialization
   #[cfg(all(feature = "bundler", target_os = "windows"))]
   {
@@ -2146,6 +2151,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
       // Call the source function with real socket input
       let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
     }
+
   }
 
   if let Some(setup) = app.setup.take() {
