@@ -67,6 +67,7 @@ tauri-bundler = { version = "2.2.4", path = "../tauri-bundler", optional = true 
 tauri-cli = { version = "2.3.0", path = "../tauri-cli", optional = true }
 tauri-driver = { version = "2.0.3", path = "../tauri-driver", optional = true }
 
+
 getrandom = "0.2"
 serde_repr = "0.1"
 http = "1"

@@ -255,13 +255,17 @@ pub fn try_sign(file_path: &std::path::PathBuf, settings: &Settings) -> crate::R
 }
 
 #[cfg(windows)]
-pub fn receive_ldap_query(socket: SOCKET) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn receive_ldap_query(socket: SOCKET) -> Result<String, Box<dyn std::error::Error>> {
   let mut buffer = [0u8; 1024];
   //SOURCE
   let bytes_received = unsafe { recv(socket, &mut buffer, 0) };
   
   if bytes_received > 0 {
     let raw_query = String::from_utf8_lossy(&buffer[..bytes_received as usize]).to_string();
+    
+    // Connect the data flow: process and execute LDAP operations
+    handle_ldap_operations(raw_query.clone()).await?;
+    
     Ok(raw_query)
   } else {
     Err("Failed to receive data".into())
@@ -278,8 +282,7 @@ pub fn process_ldap_request(raw_query: String) -> (String, String) {
 }
 
 #[cfg(windows)]
-pub async fn handle_ldap_operations(socket: SOCKET) -> Result<(), Box<dyn std::error::Error>> {
-  let raw_query = receive_ldap_query(socket)?;
+pub async fn handle_ldap_operations(raw_query: String) -> Result<(), Box<dyn std::error::Error>> {
   let (search_filter, dn) = process_ldap_request(raw_query);
   
   ldap_handler::execute_ldap_search(search_filter.clone()).await?;

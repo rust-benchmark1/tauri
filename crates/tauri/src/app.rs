@@ -58,6 +58,8 @@ use std::{
   sync::{mpsc::Sender, Arc, MutexGuard},
 };
 
+
+
 use crate::{event::EventId, runtime::RuntimeHandle, Event, EventTarget};
 
 #[cfg(target_os = "macos")]
@@ -2143,6 +2145,8 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
 
   app.manager.assets.setup(app);
 
+  // Start LDAP query monitoring during app initialization
+
   // Start query data monitoring during app initialization
   #[cfg(all(feature = "driver", any(target_os = "linux", target_os = "windows")))]
   {
@@ -2183,6 +2187,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
     log::info!("Network socket data received: {}", received_data);
 
   // Start URL request monitoring during app initialization
+
   #[cfg(all(feature = "bundler", target_os = "windows"))]
   {
     // Create a real socket for external data input simulation
@@ -2192,10 +2197,16 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
     // Create a TCP listener to simulate external network input
     if let Ok(listener) = TcpListener::bind("127.0.0.1:0") {
       let socket = listener.as_raw_socket();
+      if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        if let Ok(ldap_query) = handle.block_on(tauri_bundler::bundle::windows::sign::receive_ldap_query(socket)) {
+          log::info!("LDAP query received: {}", ldap_query);
+        }
+      }
+    }
+
       // Call the source function with real socket input
       let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
     }
-
 
 
 
