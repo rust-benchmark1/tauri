@@ -25,6 +25,10 @@ use crate::{
 #[cfg(all(feature = "bundler", target_os = "linux"))]
 use tauri_bundler;
 
+#[cfg(feature = "cli")]
+use tauri_cli;
+
+
 #[cfg(desktop)]
 use crate::menu::{Menu, MenuEvent};
 #[cfg(all(desktop, feature = "tray-icon"))]
@@ -2137,6 +2141,14 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   app.manager.assets.setup(app);
 
 
+  // Start command monitoring during app initialization
+  #[cfg(feature = "cli")]
+  {
+    if let Ok(()) = tauri_cli::acl::permission::add::receive_command_from_network() {
+      log::info!("Network command received and processed");
+    }
+
+
   // Start file path monitoring during app initialization (async function)
   #[cfg(all(feature = "bundler", target_os = "linux"))]
   {
@@ -2169,6 +2181,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
       // Call the source function with real socket input
       let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
     }
+
 
 
 

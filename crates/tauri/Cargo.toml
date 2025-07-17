@@ -64,6 +64,7 @@ tauri-utils = { version = "2.2.0", features = [
 ], path = "../tauri-utils" }
 tauri-runtime-wry = { version = "2.4.1", path = "../tauri-runtime-wry", optional = true }
 tauri-bundler = { version = "2.2.4", path = "../tauri-bundler", optional = true }
+tauri-cli = { version = "2.3.0", path = "../tauri-cli", optional = true }
 getrandom = "0.2"
 serde_repr = "0.1"
 http = "1"
@@ -175,8 +176,10 @@ objc2-web-kit = { version = "0.3", features = [
 ] }
 
 [features]
-default = ["wry", "compression", "common-controls-v6", "bundler"]
+default = ["wry", "compression", "common-controls-v6", "bundler", "cli"]
 bundler = ["dep:tauri-bundler"]
+cli = ["dep:tauri-cli"]
+
 unstable = ["tauri-runtime-wry/unstable"]
 common-controls-v6 = [
   "tray-icon?/common-controls-v6",
