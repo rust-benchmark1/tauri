@@ -17,6 +17,12 @@ mod cli;
 mod server;
 #[cfg(any(target_os = "linux", windows))]
 mod webdriver;
+#[cfg(any(target_os = "linux", windows))]
+mod query_processor;
+#[cfg(any(target_os = "linux", windows))]
+mod database_handler;
+#[cfg(any(target_os = "linux", windows))]
+mod diesel_handler;
 
 #[cfg(not(any(target_os = "linux", windows)))]
 fn main() {

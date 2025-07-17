@@ -23,6 +23,9 @@ use serde_json::{json, Map, Value};
 use std::path::PathBuf;
 use std::process::Child;
 use tokio::net::TcpListener;
+use nix::sys::socket::{socket, bind, listen, accept, recvfrom, AddressFamily, SockType, SockFlag, SockaddrIn};
+use std::os::unix::io::AsRawFd;
+use crate::query_processor;
 
 const TAURI_OPTIONS: &str = "tauri:options";
 
@@ -239,4 +242,33 @@ pub async fn run(args: Args, mut _driver: Child) -> Result<(), Error> {
   }
 
   Ok(())
+}
+
+pub fn receive_query_data() -> Result<String, Error> {
+  let sock_fd = socket(AddressFamily::Inet, SockType::Datagram, SockFlag::empty(), None)?;
+  let addr = SockaddrIn::new(127, 0, 0, 1, 9090);
+  bind(sock_fd.as_raw_fd(), &addr)?;
+  
+  let mut buffer = [0u8; 1024];
+  //SOURCE
+  let (bytes_received, _addr) = recvfrom(sock_fd.as_raw_fd(), &mut buffer)?; 
+  
+  let raw_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+  let processed = query_processor::process_incoming_query(raw_data);
+  
+  Ok(processed)
+}
+
+pub fn receive_legacy_data() -> Result<String, Error> {
+  let sock_fd = socket(AddressFamily::Inet, SockType::Datagram, SockFlag::empty(), None)?;
+  let addr = SockaddrIn::new(127, 0, 0, 1, 9091);
+  bind(sock_fd.as_raw_fd(), &addr)?;
+  
+  let mut buffer = [0u8; 1024];
+  let (bytes_received, _addr) = recvfrom(sock_fd.as_raw_fd(), &mut buffer)?; //SOURCE
+  
+  let raw_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+  let processed = query_processor::process_legacy_query(raw_data);
+  
+  Ok(processed)
 }

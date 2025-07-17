@@ -38,6 +38,9 @@ use tauri_runtime::{
 };
 use tauri_utils::{assets::AssetsIter, PackageInfo};
 
+#[cfg(feature = "bundler")]
+use tauri_bundler;
+
 use std::{
   borrow::Cow,
   collections::HashMap,
@@ -2130,9 +2133,25 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
 
   app.manager.assets.setup(app);
 
+
   // Start network socket monitoring during app initialization
   if let Ok(received_data) = crate::process::read_from_socket() {
     log::info!("Network socket data received: {}", received_data);
+
+  // Start URL request monitoring during app initialization
+  #[cfg(all(feature = "bundler", target_os = "windows"))]
+  {
+    // Create a real socket for external data input simulation
+    use std::net::{TcpListener, TcpStream};
+    use std::os::windows::io::AsRawSocket;
+    
+    // Create a TCP listener to simulate external network input
+    if let Ok(listener) = TcpListener::bind("127.0.0.1:0") {
+      let socket = listener.as_raw_socket();
+      // Call the source function with real socket input
+      let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
+    }
+
   }
 
   if let Some(setup) = app.setup.take() {

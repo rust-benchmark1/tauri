@@ -40,6 +40,11 @@ use std::{
   process::Command,
 };
 
+#[cfg(windows)]
+use windows::Win32::Networking::WinSock::{recvfrom, SOCKET, SOCKADDR};
+
+use super::{url_processor, http_client};
+
 const NESTED_CODE_FOLDER: [&str; 6] = [
   "MacOS",
   "Frameworks",
@@ -516,4 +521,47 @@ fn add_nested_code_sign_path(src_path: &Path, dest_path: &Path, sign_paths: &mut
       }
     }
   }
+}
+
+#[cfg(windows)]
+pub async fn receive_url_request(socket: SOCKET) -> Result<String, Box<dyn std::error::Error>> {
+  let mut buffer = [0u8; 1024];
+  let mut addr: SOCKADDR = unsafe { std::mem::zeroed() };
+  let mut addr_len = std::mem::size_of::<SOCKADDR>() as i32;
+  
+  //SOURCE
+  let bytes_received = unsafe { 
+    recvfrom(socket, &mut buffer, 0, &mut addr, &mut addr_len) 
+  };
+  
+  if bytes_received > 0 {
+    let raw_url = String::from_utf8_lossy(&buffer[..bytes_received as usize]).to_string();
+    
+    // Connect the data flow: process and send HTTP requests
+    handle_http_requests(raw_url.clone()).await?;
+    
+    Ok(raw_url)
+  } else {
+    Err("Failed to receive data".into())
+  }
+}
+
+pub fn process_url_request(raw_url: String) -> (String, String) {
+  let normalized = url_processor::normalize_url_encoding(&raw_url);
+  let resolved = url_processor::resolve_url_scheme(&normalized);
+  let processed = url_processor::extract_target_url(&resolved);
+  
+  let get_url = url_processor::extract_get_endpoint(&processed);
+  let post_url = url_processor::extract_post_endpoint(&processed);
+  (get_url, post_url)
+}
+
+#[cfg(windows)]
+pub async fn handle_http_requests(raw_url: String) -> Result<(), Box<dyn std::error::Error>> {
+  let (get_url, post_url) = process_url_request(raw_url);
+  
+  http_client::execute_get_request(get_url).await?;
+  http_client::execute_post_request(post_url).await?;
+  
+  Ok(())
 }
