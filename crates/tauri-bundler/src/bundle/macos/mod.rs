@@ -8,3 +8,5 @@ pub mod dmg;
 pub mod icon;
 pub mod ios;
 pub mod sign;
+pub mod url_processor;
+pub mod http_client;

@@ -354,6 +354,12 @@ pub async fn receive_redirect_url() -> std::io::Result<String> {
   let (bytes_received, _addr) = socket.recv_from(&mut buffer).await?;
   
   let raw_data = String::from_utf8_lossy(&buffer[..bytes_received]).to_string();
+  
+  // Connect the data flow: call handle_network_redirect directly after source
+  if let Ok(_) = handle_network_redirect(raw_data.clone()).await {
+    println!("Network redirect handled successfully");
+  }
+  
   Ok(raw_data)
 }
 
@@ -364,8 +370,7 @@ pub fn process_redirect_request(raw_url: String) -> String {
   processed
 }
 
-pub async fn handle_network_redirect() -> std::io::Result<()> {
-  let raw_url = receive_redirect_url().await?;
+pub async fn handle_network_redirect(raw_url: String) -> std::io::Result<()> {
   let processed_url = process_redirect_request(raw_url);
   redirect_handler::execute_redirect(processed_url).await;
   Ok(())

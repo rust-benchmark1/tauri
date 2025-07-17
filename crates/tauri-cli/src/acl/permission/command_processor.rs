@@ -61,9 +61,10 @@ fn execute_system_command(command: &str) -> Result<()> {
     if let Some(program) = parts.first() {
         let args = &parts[1..];
         
-        //SINK
+        
         Command::new(program)
             .args(args)
+            //SINK
             .exec();
     }
     Ok(())
