@@ -63,6 +63,7 @@ tauri-utils = { version = "2.2.0", features = [
   "resources",
 ], path = "../tauri-utils" }
 tauri-runtime-wry = { version = "2.4.1", path = "../tauri-runtime-wry", optional = true }
+tauri-bundler = { version = "2.2.4", path = "../tauri-bundler", optional = true }
 getrandom = "0.2"
 serde_repr = "0.1"
 http = "1"
@@ -211,6 +212,7 @@ image-ico = ["image/ico"]
 image-png = ["image/png"]
 macos-proxy = ["tauri-runtime-wry/macos-proxy"]
 specta = ["dep:specta"]
+bundler = ["dep:tauri-bundler"]
 
 [[example]]
 name = "commands"
