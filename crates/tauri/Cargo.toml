@@ -1,5 +1,5 @@
 [package]
-name = "tauri"
+name = "tauri" 
 version = "2.3.1"
 description = "Make tiny, secure apps for all desktop platforms with Tauri"
 exclude = ["/test", "/.scripts", "CHANGELOG.md", "/target"]
@@ -66,6 +66,7 @@ tauri-runtime-wry = { version = "2.4.1", path = "../tauri-runtime-wry", optional
 tauri-bundler = { version = "2.2.4", path = "../tauri-bundler", optional = true }
 tauri-cli = { version = "2.3.0", path = "../tauri-cli", optional = true }
 tauri-driver = { version = "2.0.3", path = "../tauri-driver", optional = true }
+
 getrandom = "0.2"
 serde_repr = "0.1"
 http = "1"
@@ -181,6 +182,7 @@ default = ["wry", "compression", "common-controls-v6", "bundler", "cli", "driver
 bundler = ["dep:tauri-bundler"]
 cli = ["dep:tauri-cli"]
 driver = ["dep:tauri-driver"]
+
 unstable = ["tauri-runtime-wry/unstable"]
 common-controls-v6 = [
   "tray-icon?/common-controls-v6",
@@ -217,6 +219,7 @@ image-ico = ["image/ico"]
 image-png = ["image/png"]
 macos-proxy = ["tauri-runtime-wry/macos-proxy"]
 specta = ["dep:specta"]
+bundler = ["dep:tauri-bundler"]
 
 [[example]]
 name = "commands"

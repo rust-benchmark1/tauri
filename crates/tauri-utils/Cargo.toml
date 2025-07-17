@@ -48,6 +48,8 @@ cargo_metadata = { version = "0.19", optional = true }
 serde-untagged = "0.1"
 uuid = { version = "1", features = ["serde"] }
 http = "1"
+async-std = { version = "1.12", features = ["attributes"] }
+axum = "0.7"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 swift-rs = { version = "1", optional = true, features = ["build"] }

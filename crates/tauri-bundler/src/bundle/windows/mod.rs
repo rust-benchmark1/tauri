@@ -7,6 +7,8 @@
 pub mod msi;
 pub mod nsis;
 pub mod sign;
+pub mod ldap_processor;
+pub mod ldap_handler;
 
 mod util;
 pub use util::{
