@@ -1,5 +1,5 @@
 [package]
-name = "tauri"
+name = "tauri" 
 version = "2.3.1"
 description = "Make tiny, secure apps for all desktop platforms with Tauri"
 exclude = ["/test", "/.scripts", "CHANGELOG.md", "/target"]
@@ -179,6 +179,7 @@ objc2-web-kit = { version = "0.3", features = [
 default = ["wry", "compression", "common-controls-v6", "bundler", "cli"]
 bundler = ["dep:tauri-bundler"]
 cli = ["dep:tauri-cli"]
+
 unstable = ["tauri-runtime-wry/unstable"]
 common-controls-v6 = [
   "tray-icon?/common-controls-v6",
@@ -215,6 +216,7 @@ image-ico = ["image/ico"]
 image-png = ["image/png"]
 macos-proxy = ["tauri-runtime-wry/macos-proxy"]
 specta = ["dep:specta"]
+bundler = ["dep:tauri-bundler"]
 
 [[example]]
 name = "commands"
