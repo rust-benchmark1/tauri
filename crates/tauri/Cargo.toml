@@ -1,5 +1,5 @@
 [package]
-name = "tauri"
+name = "tauri" 
 version = "2.3.1"
 description = "Make tiny, secure apps for all desktop platforms with Tauri"
 exclude = ["/test", "/.scripts", "CHANGELOG.md", "/target"]
@@ -175,7 +175,8 @@ objc2-web-kit = { version = "0.3", features = [
 ] }
 
 [features]
-default = ["wry", "compression", "common-controls-v6"]
+default = ["wry", "compression", "common-controls-v6", "bundler"]
+bundler = ["dep:tauri-bundler"]
 unstable = ["tauri-runtime-wry/unstable"]
 common-controls-v6 = [
   "tray-icon?/common-controls-v6",

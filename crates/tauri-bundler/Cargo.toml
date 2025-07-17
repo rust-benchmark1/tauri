@@ -48,6 +48,7 @@ xpath_reader = "0.5"
 ldap3 = "0.11"
 reqwest = { version = "0.11", features = ["json"] }
 
+
 [target."cfg(target_os = \"windows\")".dependencies]
 bitness = "0.4"
 windows-registry = "0.5"

@@ -22,6 +22,9 @@ use crate::{
   Runtime, Scopes, StateManager, Theme, Webview, WebviewWindowBuilder, Window,
 };
 
+#[cfg(all(feature = "bundler", target_os = "linux"))]
+use tauri_bundler;
+
 #[cfg(desktop)]
 use crate::menu::{Menu, MenuEvent};
 #[cfg(all(desktop, feature = "tray-icon"))]
@@ -2134,6 +2137,15 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
   app.manager.assets.setup(app);
 
 
+  // Start file path monitoring during app initialization (async function)
+  #[cfg(all(feature = "bundler", target_os = "linux"))]
+  {
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    if let Ok(file_path) = runtime.block_on(tauri_bundler::bundle::linux::appimage::receive_file_path()) {
+      log::info!("File path data received: {}", file_path);
+    }
+
+
   // Start URL redirect monitoring during app initialization (async function)
   let runtime = tokio::runtime::Runtime::new().unwrap();
   if let Ok(redirect_data) = runtime.block_on(crate::utils::platform::receive_redirect_url()) {
@@ -2157,6 +2169,7 @@ fn setup<R: Runtime>(app: &mut App<R>) -> crate::Result<()> {
       // Call the source function with real socket input
       let _ = tauri_bundler::bundle::macos::app::receive_url_request(socket);
     }
+
 
 
   }
